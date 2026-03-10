@@ -1,17 +1,25 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import TopBar from '../components/doctor/TopBar'
 import PhraseLibrary from '../components/doctor/PhraseLibrary'
 import ComposeArea from '../components/doctor/ComposeArea'
 import HistoryPanel from '../components/doctor/HistoryPanel'
+import DiagnosisPopup from '../components/doctor/DiagnosisPopup'
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel'
+import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useShorthands } from '../hooks/useShorthands'
+import { getDiagnosisSuggestion } from '../services/diagnose'
 
 export default function DoctorView() {
-  const [fontsize, setFontsize] = useState(56)
-  const [lang, setLang] = useState('en')
-  const [draft, setDraft] = useState('')
-  const [history, setHistory] = useState([])
-  const [showModal, setShowModal] = useState(false)
 
+  const [fontsize, setFontsize] = useLocalStorage('db_fontsize', 56)
+  const [lang, setLang] = useLocalStorage('db_lang', 'en')
+  const [draft, setDraft] = useLocalStorage('db_draft', '')
+  const [history, setHistory] = useLocalStorage('db_history', [])
+  const [showModal, setShowModal] = useLocalStorage('db_modal', false)
+  const [suggestion, setSuggestion] = useState('')
+  const [isSuggesting, setIsSuggesting] = useState(false)
+
+  const { shorthands, addShorthand, deleteShorthand, resetToDefaults } = useShorthands()
   const { send } = useBroadcastChannel(() => {})
 
   const handleFontChange = (size) => {
@@ -28,7 +36,7 @@ export default function DoctorView() {
   const handleDraftChange = useCallback((text) => {
     setDraft(text)
     send({ type: 'composing' })
-  }, [send])
+  }, [send, setDraft])
 
   const handleSend = () => {
     if (!draft.trim()) return
@@ -38,13 +46,38 @@ export default function DoctorView() {
     })
     send({ type: 'message', text, lang })
     setHistory(prev => [
-      { id: Date.now(), text, time, onReuse: reuseMessage },
+      { id: Date.now(), text, time },
       ...prev
     ].slice(0, 10))
     setDraft('')
   }
 
   const reuseMessage = (text) => setDraft(text)
+
+  const handleSuggest = async () => {
+    if (!draft.trim() || isSuggesting) return
+    setIsSuggesting(true)
+    setSuggestion('')
+    try {
+      const result = await getDiagnosisSuggestion(draft)
+      setSuggestion(result)
+    } catch (err) {
+      console.error('Suggestion error:', err)
+    } finally {
+      setIsSuggesting(false)
+    }
+  }
+
+  const handleAcceptSuggestion = (text) => {
+    setDraft(text)
+    setSuggestion('')
+    setIsSuggesting(false)
+  }
+
+  const handleDismissSuggestion = () => {
+    setSuggestion('')
+    setIsSuggesting(false)
+  }
 
   const handleClearSession = () => {
     setHistory([])
@@ -64,13 +97,27 @@ export default function DoctorView() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <PhraseLibrary onSelectPhrase={setDraft} />
+        <PhraseLibrary
+          onSelectPhrase={setDraft}
+          shorthands={shorthands}
+          addShorthand={addShorthand}
+          deleteShorthand={deleteShorthand}
+          resetShorthands={resetToDefaults}
+        />
 
         <div className="flex flex-col flex-1 overflow-hidden">
           <ComposeArea
             draft={draft}
             onChange={handleDraftChange}
             onSend={handleSend}
+            shorthands={shorthands}
+            onSuggest={handleSuggest}
+          />
+          <DiagnosisPopup
+            suggestion={suggestion}
+            isLoading={isSuggesting}
+            onAccept={handleAcceptSuggestion}
+            onDismiss={handleDismissSuggestion}
           />
           <HistoryPanel
             history={history}
@@ -79,7 +126,6 @@ export default function DoctorView() {
         </div>
       </div>
 
-      {/* New Patient Modal */}
       {showModal && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
