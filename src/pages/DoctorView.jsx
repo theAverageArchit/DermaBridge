@@ -1,11 +1,13 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import TopBar from '../components/doctor/TopBar'
 import PhraseLibrary from '../components/doctor/PhraseLibrary'
 import ComposeArea from '../components/doctor/ComposeArea'
 import HistoryPanel from '../components/doctor/HistoryPanel'
+import DiagnosisPopup from '../components/doctor/DiagnosisPopup'
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useShorthands } from '../hooks/useShorthands'
+import { getDiagnosisSuggestion } from '../services/diagnose'
 
 export default function DoctorView() {
 
@@ -14,6 +16,8 @@ export default function DoctorView() {
   const [draft, setDraft] = useLocalStorage('db_draft', '')
   const [history, setHistory] = useLocalStorage('db_history', [])
   const [showModal, setShowModal] = useLocalStorage('db_modal', false)
+  const [suggestion, setSuggestion] = useState('')
+  const [isSuggesting, setIsSuggesting] = useState(false)
 
   const { shorthands, addShorthand, deleteShorthand, resetToDefaults } = useShorthands()
   const { send } = useBroadcastChannel(() => {})
@@ -50,6 +54,31 @@ export default function DoctorView() {
 
   const reuseMessage = (text) => setDraft(text)
 
+  const handleSuggest = async () => {
+    if (!draft.trim() || isSuggesting) return
+    setIsSuggesting(true)
+    setSuggestion('')
+    try {
+      const result = await getDiagnosisSuggestion(draft)
+      setSuggestion(result)
+    } catch (err) {
+      console.error('Suggestion error:', err)
+    } finally {
+      setIsSuggesting(false)
+    }
+  }
+
+  const handleAcceptSuggestion = (text) => {
+    setDraft(text)
+    setSuggestion('')
+    setIsSuggesting(false)
+  }
+
+  const handleDismissSuggestion = () => {
+    setSuggestion('')
+    setIsSuggesting(false)
+  }
+
   const handleClearSession = () => {
     setHistory([])
     setDraft('')
@@ -82,6 +111,13 @@ export default function DoctorView() {
             onChange={handleDraftChange}
             onSend={handleSend}
             shorthands={shorthands}
+            onSuggest={handleSuggest}
+          />
+          <DiagnosisPopup
+            suggestion={suggestion}
+            isLoading={isSuggesting}
+            onAccept={handleAcceptSuggestion}
+            onDismiss={handleDismissSuggestion}
           />
           <HistoryPanel
             history={history}

@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { acTerms } from '../../data/phrases'
 
-export default function ComposeArea({ draft, onChange, onSend, shorthands }) {
+export default function ComposeArea({ draft, onChange, onSend, shorthands, onSuggest }) {
   const textareaRef = useRef(null)
 
   useEffect(() => {
@@ -34,6 +34,12 @@ export default function ComposeArea({ draft, onChange, onSend, shorthands }) {
   }
 
   const handleKeyDown = (e) => {
+    if (e.key === ' ' && e.ctrlKey) {
+      e.preventDefault()
+      onSuggest?.()
+      return
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (draft.trim()) onSend()
@@ -119,6 +125,7 @@ export default function ComposeArea({ draft, onChange, onSend, shorthands }) {
             <span><kbd className="bg-white border border-gray-200 rounded px-1 font-mono">Enter</kbd> Send</span>
             <span><kbd className="bg-white border border-gray-200 rounded px-1 font-mono">Shift+Enter</kbd> New line</span>
             <span><kbd className="bg-white border border-gray-200 rounded px-1 font-mono">Esc</kbd> Clear</span>
+            <span><kbd className="bg-white border border-gray-200 rounded px-1 font-mono">Ctrl+Space</kbd> AI suggest</span>
           </div>
           <button
             onClick={onSend}
