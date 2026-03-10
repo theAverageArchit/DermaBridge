@@ -5,6 +5,7 @@ import ComposeArea from '../components/doctor/ComposeArea'
 import HistoryPanel from '../components/doctor/HistoryPanel'
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useShorthands } from '../hooks/useShorthands'
 
 export default function DoctorView() {
   const [fontsize, setFontsize] = useLocalStorage('db_fontsize', 56)
@@ -13,6 +14,7 @@ export default function DoctorView() {
   const [history, setHistory] = useLocalStorage('db_history', [])
   const [showModal, setShowModal] = useLocalStorage('db_modal', false)
 
+  const { shorthands, addShorthand, deleteShorthand, resetToDefaults } = useShorthands()
   const { send } = useBroadcastChannel(() => {})
 
   const handleFontChange = (size) => {
@@ -65,13 +67,20 @@ export default function DoctorView() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <PhraseLibrary onSelectPhrase={setDraft} />
+        <PhraseLibrary
+          onSelectPhrase={setDraft}
+          shorthands={shorthands}
+          addShorthand={addShorthand}
+          deleteShorthand={deleteShorthand}
+          resetShorthands={resetToDefaults}
+        />
 
         <div className="flex flex-col flex-1 overflow-hidden">
           <ComposeArea
             draft={draft}
             onChange={handleDraftChange}
             onSend={handleSend}
+            shorthands={shorthands}
           />
           <HistoryPanel
             history={history}

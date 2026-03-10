@@ -1,25 +1,21 @@
 import { useRef, useEffect } from 'react'
-import { shorthands, acTerms } from '../../data/phrases'
+import { acTerms } from '../../data/phrases'
 
-export default function ComposeArea({ draft, onChange, onSend }) {
+export default function ComposeArea({ draft, onChange, onSend, shorthands }) {
   const textareaRef = useRef(null)
 
-  // Focus on mount
   useEffect(() => {
     textareaRef.current?.focus()
   }, [])
 
-  // When a phrase is selected from the library, refocus the textarea
   useEffect(() => {
     if (draft) textareaRef.current?.focus()
   }, [draft])
 
   // ── Autocomplete ──
-  const getLastWord = (text) => text.split(/\s+/).at(-1).toLowerCase()
-
   const getSuggestions = (text) => {
     if (!text.trim()) return []
-    const last = getLastWord(text)
+    const last = text.split(/\s+/).at(-1).toLowerCase()
     if (last.length < 2) return []
     return acTerms.filter(t => t.startsWith(last) && t !== last).slice(0, 5)
   }
@@ -37,17 +33,6 @@ export default function ComposeArea({ draft, onChange, onSend }) {
     return shorthands[last] ? { key: last, expansion: shorthands[last] } : null
   }
 
-  const expandShorthand = (text) => {
-    const words = text.trimEnd().split(/\s+/)
-    const last = words.at(-1)
-    if (shorthands[last]) {
-      words[words.length - 1] = shorthands[last]
-      return words.join(' ') + ' '
-    }
-    return null
-  }
-
-  // ── Key handler ──
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -67,10 +52,12 @@ export default function ComposeArea({ draft, onChange, onSend }) {
     }
 
     if (e.key === ' ') {
-      const expanded = expandShorthand(draft)
-      if (expanded) {
+      const words = draft.trimEnd().split(/\s+/)
+      const last = words.at(-1)
+      if (shorthands[last]) {
         e.preventDefault()
-        onChange(expanded)
+        words[words.length - 1] = shorthands[last]
+        onChange(words.join(' ') + ' ')
       }
     }
   }

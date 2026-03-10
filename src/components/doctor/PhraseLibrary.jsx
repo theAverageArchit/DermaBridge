@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { categories } from '../../data/phrases'
 import { usePhrases } from '../../hooks/usePhrases'
+import ShorthandPanel from './ShorthandPanel'
 
-export default function PhraseLibrary({ onSelectPhrase }) {
+export default function PhraseLibrary({ onSelectPhrase, shorthands, addShorthand, deleteShorthand, resetShorthands }) {
   const [activeCat, setActiveCat] = useState('all')
   const [flash, setFlash] = useState(null)
   const [isAdding, setIsAdding] = useState(false)
@@ -145,7 +146,6 @@ export default function PhraseLibrary({ onSelectPhrase }) {
         {filtered.map(phrase => (
           <div key={phrase.id} className="group relative">
             {editingId === phrase.id ? (
-              // Edit mode
               <div className="flex flex-col gap-1.5 p-2 bg-blue-50 rounded-md border border-blue-100">
                 <textarea
                   autoFocus
@@ -174,7 +174,6 @@ export default function PhraseLibrary({ onSelectPhrase }) {
                 </div>
               </div>
             ) : (
-              // View mode
               <button
                 onClick={() => handleSelect(phrase)}
                 className={`w-full text-left px-3 py-2 rounded-md text-xs leading-relaxed border transition-colors ${
@@ -187,7 +186,6 @@ export default function PhraseLibrary({ onSelectPhrase }) {
               </button>
             )}
 
-            {/* Edit / Delete actions — show on hover */}
             {editingId !== phrase.id && (
               <div className="absolute right-1 top-1 hidden group-hover:flex gap-0.5">
                 <button
@@ -211,6 +209,13 @@ export default function PhraseLibrary({ onSelectPhrase }) {
           </div>
         ))}
       </div>
+
+      <ShorthandPanel
+        shorthands={shorthands}
+        addShorthand={addShorthand}
+        deleteShorthand={deleteShorthand}
+        resetToDefaults={resetShorthands}
+      />
 
     </aside>
   )
