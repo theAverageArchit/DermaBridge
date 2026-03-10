@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DermaBridge — Patient View</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FAFBFC;
+    --surface: #FFFFFF;
+    --border: #E8ECF0;
+    --text-primary: #0F1923;
+    --text-history: #8A96A3;
+    --text-history-2: #B0BAC4;
+    --accent: #2563EB;
+    --accent-soft: #EEF3FD;
+    --green: #059669;
+    --typing-color: #6B7280;
+    --font-display: 'Lora', serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    user-select: none;
+  }
+
+  /* ── SUBTLE BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37,99,235,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(5,150,105,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .screen {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px 100px;
+  }
+
+  /* ── CLINIC HEADER ── */
+  .clinic-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 36px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+
+  .clinic-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.6;
+  }
+
+  .clinic-logo-mark {
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .clinic-logo-mark svg { width: 13px; height: 13px; }
+
+  .clinic-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .clinic-time {
+    font-size: 13px;
+    color: var(--text-history);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── MESSAGE HISTORY ── */
+  .history-area {
+    width: 100%;
+    max-width: 820px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 32px;
+    flex-shrink: 0;
+    min-height: 0;
+  }
+
+  .history-msg {
+    font-family: var(--font-display);
+    text-align: center;
+    line-height: 1.5;
+    padding: 10px 0;
+    transition: all 0.4s ease;
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  .history-msg.visible { opacity: 1; transform: translateY(0); }
+
+  .history-msg.age-1 {
+    font-size: 22px;
+    color: var(--text-history);
+    font-weight: 400;
+  }
+
+  .history-msg.age-2 {
+    font-size: 18px;
+    color: var(--text-history-2);
+    font-weight: 400;
+  }
+
+  .history-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--border);
+    margin: 6px auto;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .history-divider.visible { opacity: 1; }
+
+  /* ── CURRENT MESSAGE ── */
+  .current-message-wrap {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .current-message {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    transition: opacity 0.15s ease;
+    word-break: break-word;
+    min-height: 80px;
+  }
+
+  .current-message.refreshing { opacity: 0; }
+
+  /* new message pop-in */
+  @keyframes msg-in {
+    0%   { opacity: 0; transform: translateY(16px) scale(0.97); }
+    60%  { transform: translateY(-3px) scale(1.005); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .current-message.animate-in {
+    animation: msg-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* placeholder idle state */
+  .current-message.idle {
+    color: #C8D0DA;
+    font-size: 36px;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  /* ── TYPING INDICATOR ── */
+  .typing-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    transition: opacity 0.3s, transform 0.3s;
+    transform: translateY(0);
+  }
+
+  .typing-bar.hidden {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.2s ease infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  .typing-label {
+    font-size: 14px;
+    color: var(--typing-color);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── SENT FLASH ── */
+  @keyframes flash-accent {
+    0%   { background: rgba(37,99,235,0.06); }
+    100% { background: transparent; }
+  }
+
+  .screen.flash { animation: flash-accent 0.5s ease forwards; }
+
+  /* ── DEMO PANEL (for preview only) ── */
+  .demo-panel {
+    position: fixed;
+    top: 68px;
+    right: 20px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    width: 230px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    z-index: 20;
+    font-size: 12px;
+  }
+
+  .demo-panel-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #9BA5B4;
+    margin-bottom: 10px;
+  }
+
+  .demo-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    background: #F7F8FA;
+    cursor: pointer;
+    padding: 7px 10px;
+    border-radius: 7px;
+    text-align: left;
+    font-size: 11.5px;
+    font-family: var(--font-body);
+    color: #374151;
+    transition: all 0.12s;
+    line-height: 1.35;
+  }
+
+  .demo-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: #C7D9FB; }
+
+  .demo-typing-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    border: 1px solid var(--border);
+    background: #F7F8FA;
+    cursor: pointer;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 11.5px;
+    font-family: var(--font-body);
+    color: #374151;
+    margin-top: 8px;
+    transition: all 0.12s;
+  }
+
+  .demo-typing-btn:hover { background: #FFF7ED; color: #D97706; border-color: #FDE68A; }
+
+  .demo-sep {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 8px 0;
+  }
+
+  .demo-note {
+    font-size: 10.5px;
+    color: #9BA5B4;
+    line-height: 1.4;
+  }
+
+  /* ── LANG BADGE ── */
+  .lang-badge {
+    position: fixed;
+    top: 62px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 10px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .lang-badge.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- CLINIC HEADER -->
+<header class="clinic-header">
+  <div class="clinic-logo">
+    <div class="clinic-logo-mark">
+      <svg viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5h10M6.5 1.5v10" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="6.5" cy="6.5" r="5.5" stroke="white" stroke-width="1.3"/></svg>
+    </div>
+    <span class="clinic-name">DermaBridge</span>
+  </div>
+  <span class="clinic-time" id="clock"></span>
+</header>
+
+<!-- LANG BADGE -->
+<div class="lang-badge" id="lang-badge">Hindi</div>
+
+<!-- MAIN SCREEN -->
+<main class="screen" id="screen">
+  <div class="history-area" id="history-area"></div>
+
+  <div class="current-message-wrap">
+    <div class="current-message idle" id="current-message">
+      Waiting for doctor…
+    </div>
+  </div>
+</main>
+
+<!-- TYPING BAR -->
+<div class="typing-bar hidden" id="typing-bar">
+  <div class="typing-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  <span class="typing-label">Doctor is composing a message…</span>
+</div>
+
+<!-- DEMO PANEL -->
+<div class="demo-panel" id="demo-panel">
+  <div class="demo-panel-title">Preview Simulator</div>
+
+  <button class="demo-btn" onclick="simulateSend('Good morning. Please take a seat.')">Good morning. Please take a seat.</button>
+  <button class="demo-btn" onclick="simulateSend('I will be communicating with you through this screen today.')">I will be communicating with you through this screen today.</button>
+  <button class="demo-btn" onclick="simulateSend('How long have you had this condition?')">How long have you had this condition?</button>
+  <button class="demo-btn" onclick="simulateSend('Based on my examination, this appears to be eczema.')">Based on my examination, this appears to be eczema.</button>
+  <button class="demo-btn" onclick="simulateSend('Apply this cream twice daily — morning and night.')">Apply this cream twice daily — morning and night.</button>
+  <button class="demo-btn" onclick="simulateSend('Please return in 2 weeks for a follow-up. Take care.')">Please return in 2 weeks for a follow-up. Take care.</button>
+
+  <hr class="demo-sep">
+
+  <button class="demo-typing-btn" id="typing-toggle" onclick="toggleTyping()">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="3" cy="6" r="1.2" fill="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="9" cy="6" r="1.2" fill="currentColor"/></svg>
+    Simulate typing…
+  </button>
+
+  <hr class="demo-sep">
+  <div class="demo-note">In production, messages arrive via BroadcastChannel from the Doctor's View.</div>
+</div>
+
+<script>
+  // ── STATE ──
+  let messageHistory = [];
+  let isTyping = false;
+  let typingTimer = null;
+  let currentFontSize = 56;
+
+  // ── CLOCK ──
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
+
+  // ── RECEIVE MESSAGE ──
+  function receiveMessage(text) {
+    stopTyping();
+
+    const el = document.getElementById('current-message');
+    const prev = el.textContent.trim();
+    const wasIdle = el.classList.contains('idle');
+
+    // Push previous to history (if not idle placeholder)
+    if (!wasIdle && prev) {
+      messageHistory.unshift(prev);
+      if (messageHistory.length > 2) messageHistory.pop();
+      renderHistory();
+    }
+
+    // Flash screen
+    const screen = document.getElementById('screen');
+    screen.classList.remove('flash');
+    void screen.offsetWidth; // reflow
+    screen.classList.add('flash');
+    setTimeout(() => screen.classList.remove('flash'), 500);
+
+    // Animate in new message
+    el.classList.remove('idle', 'animate-in', 'refreshing');
+    el.style.fontSize = currentFontSize + 'px';
+    void el.offsetWidth;
+    el.textContent = text;
+    el.classList.add('animate-in');
+  }
+
+  // ── HISTORY ──
+  function renderHistory() {
+    const area = document.getElementById('history-area');
+    area.innerHTML = '';
+
+    messageHistory.forEach((msg, i) => {
+      if (i > 0) {
+        const div = document.createElement('div');
+        div.className = 'history-divider';
+        area.appendChild(div);
+        setTimeout(() => div.classList.add('visible'), 50 * i);
+      }
+
+      const el = document.createElement('div');
+      el.className = `history-msg age-${i + 1}`;
+      el.textContent = msg;
+      area.appendChild(el);
+      setTimeout(() => el.classList.add('visible'), 80 + 50 * i);
+    });
+  }
+
+  // ── TYPING ──
+  function showTyping() {
+    isTyping = true;
+    document.getElementById('typing-bar').classList.remove('hidden');
+  }
+
+  function stopTyping() {
+    isTyping = false;
+    document.getElementById('typing-bar').classList.add('hidden');
+    if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+  }
+
+  function toggleTyping() {
+    const btn = document.getElementById('typing-toggle');
+    if (isTyping) {
+      stopTyping();
+      btn.style.background = '';
+      btn.style.color = '';
+    } else {
+      showTyping();
+      btn.style.background = '#FFF7ED';
+      btn.style.color = '#D97706';
+      typingTimer = setTimeout(() => {
+        stopTyping();
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 4000);
+    }
+  }
+
+  // ── SIMULATE ──
+  function simulateSend(text) {
+    receiveMessage(text);
+  }
+
+  // ── BROADCAST CHANNEL (real integration) ──
+  try {
+    const channel = new BroadcastChannel('dermabridge');
+    channel.onmessage = (e) => {
+      if (e.data.type === 'message') receiveMessage(e.data.text);
+      if (e.data.type === 'composing') showTyping();
+      if (e.data.type === 'clear') {
+        messageHistory = [];
+        renderHistory();
+        const el = document.getElementById('current-message');
+        el.classList.add('idle');
+        el.style.fontSize = '';
+        el.textContent = 'Waiting for doctor…';
+        stopTyping();
+      }
+      if (e.data.type === 'font') {
+        currentFontSize = e.data.size;
+        const el = document.getElementById('current-message');
+        if (!el.classList.contains('idle')) el.style.fontSize = currentFontSize + 'px';
+      }
+      if (e.data.type === 'lang') {
+        const badge = document.getElementById('lang-badge');
+        badge.textContent = e.data.lang === 'hi' ? 'Hindi' : 'English';
+        badge.classList.add('visible');
+        setTimeout(() => badge.classList.remove('visible'), 2500);
+      }
+    };
+  } catch(e) {}
+</script>
+</body>
+</html>

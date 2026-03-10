@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DermaBridge — Doctor's View</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface-2: #F0F2F5;
+    --border: #E2E6EC;
+    --border-active: #B8C4D4;
+    --text-primary: #111827;
+    --text-secondary: #5A6472;
+    --text-muted: #9BA5B4;
+    --accent: #2563EB;
+    --accent-light: #EEF3FD;
+    --accent-hover: #1D4ED8;
+    --green: #059669;
+    --green-light: #ECFDF5;
+    --red: #DC2626;
+    --red-light: #FEF2F2;
+    --amber: #D97706;
+    --amber-light: #FFFBEB;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.05);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-lg: 16px;
+    --font: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --font-display: 'Playfair Display', serif;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-mark svg { width: 16px; height: 16px; }
+
+  .logo-name {
+    font-family: var(--font-display);
+    font-size: 17px;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .divider-v {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+
+  .view-badge {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .session-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+
+  .timer-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .font-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .font-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font);
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .font-btn:hover { background: var(--surface); color: var(--text-primary); }
+  .font-btn.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+
+  .lang-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+
+  .lang-btn {
+    border: none;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    background: transparent;
+    transition: all 0.15s;
+  }
+
+  .lang-btn.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
+  .lang-btn:hover:not(.active) { color: var(--text-primary); }
+
+  .new-patient-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+
+  .new-patient-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .cat-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cat-tab {
+    border: none;
+    cursor: pointer;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--font);
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .cat-tab:hover { background: var(--accent-light); color: var(--accent); }
+  .cat-tab.active { background: var(--accent); color: white; }
+
+  .phrases-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .phrases-list::-webkit-scrollbar { width: 4px; }
+  .phrases-list::-webkit-scrollbar-track { background: transparent; }
+  .phrases-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .phrase-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    font-size: 12.5px;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    line-height: 1.4;
+    transition: all 0.12s;
+    border: 1px solid transparent;
+  }
+
+  .phrase-btn:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    border-color: #C7D9FB;
+  }
+
+  .phrase-btn.flashed {
+    background: var(--green-light);
+    color: var(--green);
+    border-color: #A7F3D0;
+  }
+
+  /* ── COMPOSE AREA ── */
+  .compose-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 20px;
+    gap: 14px;
+  }
+
+  .compose-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .compose-card.focused {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.08), var(--shadow-md);
+  }
+
+  .shorthand-hint {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--amber-light);
+    font-size: 12px;
+    color: var(--amber);
+    font-family: var(--font-mono);
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .shorthand-hint.visible { display: flex; }
+  .shorthand-hint strong { font-weight: 600; }
+
+  .autocomplete-bar {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: var(--surface-2);
+    min-height: 40px;
+    align-items: center;
+  }
+
+  .autocomplete-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 2px;
+  }
+
+  .autocomplete-chip {
+    border: 1px solid var(--border-active);
+    background: var(--surface);
+    cursor: pointer;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    transition: all 0.12s;
+  }
+
+  .autocomplete-chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .autocomplete-chip.highlighted { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+  textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 18px 20px;
+    font-size: 16px;
+    font-family: var(--font);
+    color: var(--text-primary);
+    background: transparent;
+    line-height: 1.65;
+    min-height: 0;
+  }
+
+  textarea::placeholder { color: var(--text-muted); }
+
+  .compose-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface-2);
+  }
+
+  .shortcut-hints {
+    display: flex;
+    gap: 12px;
+  }
+
+  .shortcut {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  .send-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    transition: all 0.15s;
+    letter-spacing: 0.01em;
+  }
+
+  .send-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .send-btn:active { transform: translateY(0); }
+  .send-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── HISTORY PANEL ── */
+  .history-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    max-height: 160px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .history-header {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .history-list {
+    overflow-y: auto;
+    max-height: 120px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 3px;
+  }
+
+  .history-list::-webkit-scrollbar { width: 3px; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .history-item {
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    background: var(--surface-2);
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .history-item:hover { background: var(--accent-light); color: var(--accent); }
+
+  .history-time {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    height: 28px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .status-dot.green { background: var(--green); }
+  .status-dot.blue { background: var(--accent); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.visible { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 28px 28px 20px;
+    width: 360px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(8px);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.visible .modal { transform: translateY(0); }
+
+  .modal-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--red-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .modal p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .btn-ghost {
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+
+  .btn-ghost:hover { background: var(--surface-2); }
+
+  .btn-danger {
+    border: none;
+    background: var(--red);
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    color: white;
+    transition: all 0.15s;
+  }
+
+  .btn-danger:hover { background: #B91C1C; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #111827;
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.25s;
+    z-index: 200;
+    pointer-events: none;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── SEND ANIMATION ── */
+  @keyframes send-flash {
+    0% { background: var(--green-light); }
+    100% { background: var(--surface); }
+  }
+
+  .compose-card.sent { animation: send-flash 0.4s ease; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8h10M8 3v10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="8" cy="8" r="6.5" stroke="white" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="logo-name">DermaBridge</span>
+    </div>
+    <div class="divider-v"></div>
+    <span class="view-badge">Doctor's View</span>
+  </div>
+
+  <div class="topbar-right">
+    <div class="session-timer">
+      <div class="timer-dot"></div>
+      <span id="timer">00:00</span>
+    </div>
+
+    <div class="font-controls">
+      <button class="font-btn" onclick="changeFontSize(-4)" title="Decrease patient font">A−</button>
+      <span id="font-display" style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);padding:0 4px">56px</span>
+      <button class="font-btn" onclick="changeFontSize(4)" title="Increase patient font">A+</button>
+    </div>
+
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="lang-hi" onclick="setLang('hi')">हिंदी</button>
+    </div>
+
+    <button class="new-patient-btn" onclick="showModal()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      New Patient
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR: Phrase Library -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Phrase Library</span>
+    </div>
+
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterCat('all', this)">All</button>
+      <button class="cat-tab" onclick="filterCat('greetings', this)">Greetings</button>
+      <button class="cat-tab" onclick="filterCat('exam', this)">Exam</button>
+      <button class="cat-tab" onclick="filterCat('diagnosis', this)">Diagnosis</button>
+      <button class="cat-tab" onclick="filterCat('instructions', this)">Instructions</button>
+      <button class="cat-tab" onclick="filterCat('followup', this)">Follow-up</button>
+    </div>
+
+    <div class="phrases-list" id="phrases-list"></div>
+  </aside>
+
+  <!-- COMPOSE -->
+  <div class="compose-area">
+    <div class="compose-card" id="compose-card">
+
+      <div class="shorthand-hint" id="shorthand-hint">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h7M5 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>'<strong id="hint-key"></strong>' will expand to: <em id="hint-text"></em> &nbsp;—&nbsp; press <kbd>Space</kbd></span>
+      </div>
+
+      <div class="autocomplete-bar" id="autocomplete-bar">
+        <span class="autocomplete-label">Suggestions:</span>
+        <span id="ac-chips"></span>
+      </div>
+
+      <textarea
+        id="compose-input"
+        placeholder="Type your message here…"
+        onkeydown="handleKey(event)"
+        oninput="handleInput(event)"
+        onfocus="document.getElementById('compose-card').classList.add('focused')"
+        onblur="document.getElementById('compose-card').classList.remove('focused')"
+      ></textarea>
+
+      <div class="compose-footer">
+        <div class="shortcut-hints">
+          <span class="shortcut"><kbd>Enter</kbd> Send</span>
+          <span class="shortcut"><kbd>Shift</kbd><kbd>Enter</kbd> New line</span>
+          <span class="shortcut"><kbd>Esc</kbd> Clear</span>
+        </div>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Send
+        </button>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="history-panel">
+      <div class="history-header">
+        <span>Sent this session</span>
+        <span id="history-count" style="font-size:11px;color:var(--text-muted);font-weight:400;font-family:var(--font-mono)">0 messages</span>
+      </div>
+      <div class="history-list" id="history-list">
+        <div style="padding:8px 10px;font-size:12px;color:var(--text-muted);text-align:center">No messages yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-dot green"></div>
+    Patient screen connected
+  </div>
+  <div class="status-item">
+    <div class="status-dot blue"></div>
+    <span id="status-lang">Language: English</span>
+  </div>
+  <div class="status-item">
+    <span id="status-font">Patient font: 56px</span>
+  </div>
+  <div class="status-item" style="margin-left:auto">
+    <span id="char-count" style="color:var(--text-muted)">0 chars</span>
+  </div>
+</div>
+
+<!-- NEW PATIENT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="hideModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 7v4M11 15h.01M21 11a10 10 0 11-20 0 10 10 0 0120 0z" stroke="#DC2626" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </div>
+    <h3>Start new patient session?</h3>
+    <p>This will clear all messages from the patient screen and reset the session timer. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="hideModal()">Cancel</button>
+      <button class="btn-danger" onclick="clearSession()">Clear & Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── DATA ──
+  const phrases = [
+    { cat: 'greetings', text: 'Good morning. Please take a seat.' },
+    { cat: 'greetings', text: 'I will be communicating with you through this screen today.' },
+    { cat: 'greetings', text: 'Please do not worry — I can read everything you say.' },
+    { cat: 'greetings', text: 'Could you please describe your problem to me?' },
+    { cat: 'exam', text: 'I will now examine the affected area. Please bear with me.' },
+    { cat: 'exam', text: 'How long have you had this condition?' },
+    { cat: 'exam', text: 'Is there any itching, burning, or pain?' },
+    { cat: 'exam', text: 'Has anyone in your family had a similar condition?' },
+    { cat: 'exam', text: 'Are you currently on any medications?' },
+    { cat: 'diagnosis', text: 'Based on my examination, this appears to be eczema.' },
+    { cat: 'diagnosis', text: 'This is a fungal infection. It is treatable and not dangerous.' },
+    { cat: 'diagnosis', text: 'This looks like psoriasis — a chronic but very manageable condition.' },
+    { cat: 'diagnosis', text: 'This appears to be an allergic reaction. We will identify the trigger.' },
+    { cat: 'diagnosis', text: 'This is acne. We will start a treatment plan today.' },
+    { cat: 'instructions', text: 'Apply this cream twice daily — morning and night.' },
+    { cat: 'instructions', text: 'Avoid scratching the affected area.' },
+    { cat: 'instructions', text: 'Keep the area clean and dry.' },
+    { cat: 'instructions', text: 'Avoid direct sun exposure on the affected skin.' },
+    { cat: 'instructions', text: 'Do not use soap on the affected area for now.' },
+    { cat: 'followup', text: 'Please return in 2 weeks for a follow-up.' },
+    { cat: 'followup', text: 'If the condition worsens, come back immediately.' },
+    { cat: 'followup', text: 'The prescription is ready. Please collect it at the front desk.' },
+    { cat: 'followup', text: 'Do you have any questions for me?' },
+    { cat: 'followup', text: 'Take care. I hope you feel better soon.' },
+  ];
+
+  const shorthands = { 'ec': 'This appears to be eczema.', 'fu': 'Fungal infection — treatable and not dangerous.', 'ps': 'This looks like psoriasis.', 'gm': 'Good morning. Please take a seat.', 'ty': 'Thank you. Take care and feel better soon.' };
+  const acTerms = ['eczema', 'psoriasis', 'dermatitis', 'acne', 'rosacea', 'melanoma', 'seborrheic', 'urticaria', 'vitiligo', 'tinea', 'alopecia', 'keloid', 'pruritus', 'erythema', 'folliculitis'];
+
+  let currentCat = 'all';
+  let patientFontSize = 56;
+  let currentLang = 'en';
+  let sessionStart = Date.now();
+  let history = [];
+
+  // ── RENDER PHRASES ──
+  function renderPhrases(cat) {
+    const list = document.getElementById('phrases-list');
+    const filtered = cat === 'all' ? phrases : phrases.filter(p => p.cat === cat);
+    list.innerHTML = filtered.map((p, i) => `
+      <button class="phrase-btn" onclick="usePhrase('${p.text.replace(/'/g, "\\'")}', this)">
+        ${p.text}
+      </button>`).join('');
+  }
+
+  function filterCat(cat, el) {
+    currentCat = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderPhrases(cat);
+  }
+
+  function usePhrase(text, btn) {
+    const input = document.getElementById('compose-input');
+    input.value = text;
+    input.focus();
+    updateSendBtn();
+    updateCharCount();
+    btn.classList.add('flashed');
+    setTimeout(() => btn.classList.remove('flashed'), 600);
+  }
+
+  // ── AUTOCOMPLETE ──
+  function updateAutocomplete(val) {
+    const words = val.trim().split(/\s+/);
+    const last = words[words.length - 1].toLowerCase();
+    const chips = document.getElementById('ac-chips');
+    const bar = document.getElementById('autocomplete-bar');
+
+    if (last.length < 2) { chips.innerHTML = ''; bar.style.display = 'none'; return; }
+
+    const matches = acTerms.filter(t => t.startsWith(last) && t !== last).slice(0, 5);
+    if (!matches.length) { chips.innerHTML = ''; bar.style.display = 'none'; return; }
+
+    bar.style.display = 'flex';
+    chips.innerHTML = matches.map((m, i) =>
+      `<button class="autocomplete-chip ${i===0?'highlighted':''}" onclick="acceptAC('${m}')">${m}</button>`
+    ).join('');
+  }
+
+  function acceptAC(term) {
+    const input = document.getElementById('compose-input');
+    const val = input.value;
+    const words = val.split(/\s+/);
+    words[words.length - 1] = term;
+    input.value = words.join(' ') + ' ';
+    input.focus();
+    document.getElementById('ac-chips').innerHTML = '';
+    document.getElementById('autocomplete-bar').style.display = 'none';
+    updateSendBtn();
+  }
+
+  // ── SHORTHAND ──
+  function checkShorthand(val) {
+    const words = val.trim().split(/\s+/);
+    const last = words[words.length - 1];
+    const hint = document.getElementById('shorthand-hint');
+    if (shorthands[last]) {
+      document.getElementById('hint-key').textContent = last;
+      document.getElementById('hint-text').textContent = shorthands[last];
+      hint.classList.add('visible');
+    } else {
+      hint.classList.remove('visible');
+    }
+  }
+
+  // ── INPUT HANDLING ──
+  function handleInput(e) {
+    const val = e.target.value;
+    updateSendBtn();
+    updateCharCount();
+    updateAutocomplete(val);
+    checkShorthand(val);
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+    if (e.key === 'Escape') {
+      document.getElementById('compose-input').value = '';
+      updateSendBtn();
+      updateCharCount();
+      document.getElementById('shorthand-hint').classList.remove('visible');
+      document.getElementById('autocomplete-bar').style.display = 'none';
+      document.getElementById('ac-chips').innerHTML = '';
+    }
+    if (e.key === 'Tab') {
+      const firstChip = document.querySelector('.autocomplete-chip.highlighted');
+      if (firstChip) { e.preventDefault(); firstChip.click(); }
+    }
+    if (e.key === ' ') {
+      const input = document.getElementById('compose-input');
+      const words = input.value.trim().split(/\s+/);
+      const last = words[words.length - 1];
+      if (shorthands[last]) {
+        e.preventDefault();
+        words[words.length - 1] = shorthands[last];
+        input.value = words.join(' ') + ' ';
+        document.getElementById('shorthand-hint').classList.remove('visible');
+        updateSendBtn();
+        updateCharCount();
+      }
+    }
+  }
+
+  function updateSendBtn() {
+    const val = document.getElementById('compose-input').value.trim();
+    document.getElementById('send-btn').disabled = !val;
+  }
+
+  function updateCharCount() {
+    const val = document.getElementById('compose-input').value;
+    document.getElementById('char-count').textContent = `${val.length} chars`;
+  }
+
+  // ── SEND ──
+  function sendMessage() {
+    const input = document.getElementById('compose-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Flash card
+    const card = document.getElementById('compose-card');
+    card.classList.add('sent');
+    setTimeout(() => card.classList.remove('sent'), 400);
+
+    // Add to history
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    history.unshift({ text, time });
+    renderHistory();
+
+    // Clear
+    input.value = '';
+    updateSendBtn();
+    updateCharCount();
+    document.getElementById('shorthand-hint').classList.remove('visible');
+    document.getElementById('autocomplete-bar').style.display = 'none';
+    document.getElementById('ac-chips').innerHTML = '';
+
+    showToast('✓ Message sent to patient screen');
+    input.focus();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    const count = document.getElementById('history-count');
+    count.textContent = `${history.length} message${history.length !== 1 ? 's' : ''}`;
+    if (!history.length) {
+      list.innerHTML = '<div style="padding:8px 10px;font-size:12px;color:var(--text-muted);text-align:center">No messages yet</div>';
+      return;
+    }
+    list.innerHTML = history.slice(0, 6).map(h => `
+      <div class="history-item" onclick="reuseHistory('${h.text.replace(/'/g, "\\'")}')">
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${h.text}</span>
+        <span class="history-time">${h.time}</span>
+      </div>`).join('');
+  }
+
+  function reuseHistory(text) {
+    document.getElementById('compose-input').value = text;
+    document.getElementById('compose-input').focus();
+    updateSendBtn();
+    updateCharCount();
+  }
+
+  // ── FONT SIZE ──
+  function changeFontSize(delta) {
+    patientFontSize = Math.max(32, Math.min(80, patientFontSize + delta));
+    document.getElementById('font-display').textContent = patientFontSize + 'px';
+    document.getElementById('status-font').textContent = `Patient font: ${patientFontSize}px`;
+  }
+
+  // ── LANGUAGE ──
+  function setLang(lang) {
+    currentLang = lang;
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    document.getElementById('lang-hi').classList.toggle('active', lang === 'hi');
+    document.getElementById('status-lang').textContent = `Language: ${lang === 'en' ? 'English' : 'Hindi'}`;
+  }
+
+  // ── SESSION / MODAL ──
+  function showModal() { document.getElementById('modal-overlay').classList.add('visible'); }
+  function hideModal(e) {
+    if (!e || e.target === document.getElementById('modal-overlay')) {
+      document.getElementById('modal-overlay').classList.remove('visible');
+    }
+  }
+  function clearSession() {
+    history = [];
+    renderHistory();
+    document.getElementById('compose-input').value = '';
+    updateSendBtn();
+    updateCharCount();
+    sessionStart = Date.now();
+    hideModal();
+    showToast('Session cleared — ready for next patient');
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ── TIMER ──
+  function updateTimer() {
+    const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }
+
+  // ── INIT ──
+  renderPhrases('all');
+  setInterval(updateTimer, 1000);
+  document.getElementById('compose-input').focus();
+</script>
+</body>
+</html>
