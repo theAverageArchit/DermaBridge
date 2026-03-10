@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import MessageDisplay from '../components/patient/MessageDisplay'
 import TypingIndicator from '../components/patient/TypingIndicator'
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel'
@@ -13,6 +13,7 @@ export default function PatientView() {
   const [typingResetKey, setTypingResetKey] = useState(0)
   const [isTranslating, setIsTranslating] = useState(false)
   const [ttsEnabled, setTtsEnabled] = useState(true)
+  const ttsEnabledRef = useRef(true)
 
   // Unlock speech synthesis on first user interaction
   useEffect(() => {
@@ -30,6 +31,13 @@ export default function PatientView() {
     }
   }, [])
 
+  const handleTtsToggle = () => {
+    if (ttsEnabled) stopSpeaking()
+    const next = !ttsEnabled
+    setTtsEnabled(next)
+    ttsEnabledRef.current = next
+  }
+
   const handleMessage = (data) => {
     if (data.type === 'message') {
       setCurrent(prev => {
@@ -43,15 +51,15 @@ export default function PatientView() {
         translateToHindi(data.text)
           .then(translated => {
             setCurrent(translated)
-            if (ttsEnabled) speak(translated, 'hi')
+            if (ttsEnabledRef.current) speak(translated, 'hi')
           })
           .catch(err => {
             console.error('Translation error:', err)
-            if (ttsEnabled) speak(data.text, 'en')
+            if (ttsEnabledRef.current) speak(data.text, 'en')
           })
           .finally(() => setIsTranslating(false))
       } else {
-        if (ttsEnabled) speak(data.text, 'en')
+        if (ttsEnabledRef.current) speak(data.text, 'en')
       }
     }
 
@@ -96,10 +104,7 @@ export default function PatientView() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              if (ttsEnabled) stopSpeaking()
-              setTtsEnabled(t => !t)
-            }}
+            onClick={handleTtsToggle}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
               ttsEnabled
                 ? 'bg-blue-50 text-blue-600 border-blue-200'
