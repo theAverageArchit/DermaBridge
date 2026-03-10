@@ -8,6 +8,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useShorthands } from '../hooks/useShorthands'
 
 export default function DoctorView() {
+
   const [fontsize, setFontsize] = useLocalStorage('db_fontsize', 56)
   const [lang, setLang] = useLocalStorage('db_lang', 'en')
   const [draft, setDraft] = useLocalStorage('db_draft', '')

@@ -2,22 +2,52 @@ import { useState, useEffect } from 'react'
 import MessageDisplay from '../components/patient/MessageDisplay'
 import TypingIndicator from '../components/patient/TypingIndicator'
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel'
+import { translateToHindi } from '../services/translate'
 
 export default function PatientView() {
+
+    console.log('key being used:', import.meta.env.VITE_ANTHROPIC_API_KEY?.slice(0, 10))
+
   const [current, setCurrent] = useState('')
   const [history, setHistory] = useState([])
   const [isTyping, setIsTyping] = useState(false)
   const [fontsize, setFontsize] = useState(56)
   const [typingResetKey, setTypingResetKey] = useState(0)
+  const [isTranslating, setIsTranslating] = useState(false)
 
   const handleMessage = (data) => {
+    if (data.lang === 'hi') {
+        setIsTranslating(true)
+        translateToHindi(data.text)
+          .then(translated => {
+            setCurrent(translated)
+          })
+          .catch(err => {
+            console.error('Translation error:', err)
+          })
+          .finally(() => {
+            setIsTranslating(false)
+          })
+      }
     if (data.type === 'message') {
-      setCurrent(prev => {
-        if (prev) setHistory(h => [prev, ...h].slice(0, 2))
-        return data.text
-      })
-      setIsTyping(false)
-    }
+        setCurrent(prev => {
+          if (prev) setHistory(h => [prev, ...h].slice(0, 2))
+          return data.text
+        })
+        setIsTyping(false)
+      
+        // If Hindi, translate and update
+        if (data.lang === 'hi') {
+          translateToHindi(data.text)
+            .then(translated => {
+              setCurrent(translated)
+            })
+            .catch(err => {
+              console.error('Translation error:', err)
+              // Falls back to English text already shown
+            })
+        }
+      }
 
     if (data.type === 'composing') {
       setIsTyping(true)
@@ -67,6 +97,17 @@ export default function PatientView() {
         history={history}
         fontsize={fontsize}
       />
+
+        {isTranslating && (
+        <div className="fixed bottom-16 left-0 right-0 flex justify-center pointer-events-none">
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-500 text-xs font-medium px-4 py-2 rounded-full">
+            <svg className="animate-spin w-3 h-3" viewBox="0 0 12 12" fill="none">
+                <path d="M6 1v2M6 9v2M1 6h2M9 6h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Translating to Hindi…
+            </div>
+        </div>
+        )}
 
       {/* Typing indicator */}
       <TypingIndicator visible={isTyping} />
